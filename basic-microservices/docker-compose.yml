@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  docker-postgres:
+    image: postgres:alpine
+    restart: unless-stopped
+    container_name: docker-postgres
+    env_file:
+      - .env
+    ports:
+      - 5434:5432
+    volumes:
+      - db:/var/lib/postgres
+
+  spring-api:
+    depends_on:
+      - docker-postgres
+    image: spring-api
+    container_name: spring-api
+    build:
+      context: ./spring-boot-app
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    restart: always
+
+  node-api:
+    depends_on:
+      - docker-postgres
+    image: node-api
+    container_name: node-api
+    build:
+      context: ./node-app
+      dockerfile: Dockerfile
+    ports:
+      - 8081:8081
+    restart: always
+
+volumes:
+  db:
+
+networks:
+  internal:
